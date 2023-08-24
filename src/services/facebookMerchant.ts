@@ -1,4 +1,6 @@
 import { TransactionBaseService } from "@medusajs/medusa";
+import fetch from 'node-fetch';
+
 class FacebookMerchant extends TransactionBaseService {
   async addMultiListingProducts(products) {
     const items = products.map((product) => ({
