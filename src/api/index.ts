@@ -15,19 +15,26 @@ export default () => {
   router.post("/create-product", async (req, res) => {
     try {
       const newProduct = req.body; // Assuming the request body contains user data
-      const googleProduct = await GoogleMerchant.prototype.syncProductToMerchantCenter(
-        newProduct
-      );
-      const bingProduct = await bingMerchant.prototype.syncProductToMerchantCenter(
-        newProduct
-      );
-      const facebookProduct = await FacebookMerchant.prototype.addListingItem(newProduct);
-      const yandexProduct = await yandexMerchant.prototype.addProductToYandex(newProduct);
-     
+      const googleProduct =
+        await GoogleMerchant.prototype.syncProductToMerchantCenter(newProduct);
+      const bingProduct =
+        await bingMerchant.prototype.syncProductToMerchantCenter(newProduct);
+      const facebookProduct =
+        await FacebookMerchant.prototype.syncProductToMerchantCenter(
+          newProduct,
+        );
+      const yandexProduct =
+        await yandexMerchant.prototype.syncProductToMerchantCenter(newProduct);
+
       if (!newProduct) {
         throw new Error("no product received");
       }
-      if (!googleProduct || !facebookProduct || !bingProduct || !yandexProduct) {
+      if (
+        !googleProduct ||
+        !facebookProduct ||
+        !bingProduct ||
+        !yandexProduct
+      ) {
         throw new Error("product not published in one or more merchant api");
       }
       res.status(201).json(newProduct);
@@ -41,9 +48,8 @@ export default () => {
     try {
       const newProducts = req.body; // Assuming the request body contains user data
 
-      const metaProduct = await FacebookMerchant.prototype.addMultiListingProducts(
-        newProducts
-      );
+      const metaProduct =
+        await FacebookMerchant.prototype.addMultiListingProducts(newProducts);
       if (!newProducts) {
         throw new Error("no product received");
       }
@@ -61,7 +67,7 @@ export default () => {
     try {
       const newProducts = req.body; // Assuming the request body contains user data
       const googleProduct = await GoogleMerchant.prototype.insertMultiProducts(
-        newProducts
+        newProducts,
       );
 
       if (!newProducts) {
@@ -80,7 +86,9 @@ export default () => {
   router.post("/create-multi-products-for-bing", async (req, res) => {
     try {
       const newProducts = req.body; // Assuming the request body contains user data
-      const bingProduct = await bingMerchant.prototype.insertMultiProducts(newProducts);
+      const bingProduct = await bingMerchant.prototype.insertMultiProducts(
+        newProducts,
+      );
 
       if (!newProducts) {
         throw new Error("no product received");

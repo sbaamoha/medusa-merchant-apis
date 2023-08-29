@@ -32,7 +32,7 @@ class yandexMerchant extends TransactionBaseService {
       category: product.category,
     };
   }
-  async addProductToYandex(productData) {
+  async syncProductToMerchantCenter(productData) {
     try {
       let body;
       if (productData.length > 1) {

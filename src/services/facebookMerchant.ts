@@ -32,7 +32,7 @@ class FacebookMerchant extends TransactionBaseService {
     );
     return res;
   }
-  async addListingItem(product) {
+  async syncProductToMerchantCenter(product) {
     try {
       const body = {
         access_token: this.facebookPageAccessToken,
