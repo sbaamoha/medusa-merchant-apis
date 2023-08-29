@@ -1,12 +1,25 @@
 import { TransactionBaseService } from "@medusajs/medusa";
 import fetch from "node-fetch";
-
+// import crypto from "crypto"
 class bingMerchant extends TransactionBaseService {
+  bingMerchantID: number;
+  bingDeveloperToken: string;
+  bingAccessToken: string;
+  bingApiUrl: string;
+  constructor(props, options) {
+    super(props);
+    this.bingMerchantID = options?.bingMerchantID || "";
+    this.bingDeveloperToken = options?.bingDeveloperToken || "";
+    this.bingAccessToken = options?.bingAccessToken || "";
+    this.bingApiUrl =
+      `https://content.api.bingads.microsoft.com/shopping/v9.1/bmc/${this.bingMerchantID}/products` ||
+      "";
+  }
   makeProduct(product) {
     return {
       title: product.title,
       description: product.description,
-      offerId: product.title + product.price, // Use a unique identifier for the product
+      offerId: crypto.randomUUID(), // Use a unique identifier for the product
       brand: product.brand,
       availability: product.availability,
       condition: product.condition,
@@ -23,54 +36,70 @@ class bingMerchant extends TransactionBaseService {
   }
 
   async insertMultiProducts(products) {
-    function randomInRange(from, to) {
-      let r = Math.random();
-      return Math.floor(r * (to - from) + from);
-    }
     const entries = products.map((product) => ({
-      batchId: randomInRange(0, 999999),
-      merchantId: process.env.BING_MERCHANT_ID,
+      batchId: crypto.randomUUID(),
+      merchantId: this.bingMerchantID,
       method: "insert",
       product: this.makeProduct(product),
     }));
-    const req = await fetch(
-      `https://content.api.bingads.microsoft.com/shopping/v9.1/bmc/${process.env.BING_MERCHANT_ID}/products/batch`,
-      {
-        method: "POST",
-        body: JSON.stringify({
-          entries,
-        }),
-      }
-    );
+    const req = await fetch(`${this.bingApiUrl}/batch`, {
+      method: "POST",
+      body: JSON.stringify({
+        entries,
+      }),
+    });
     return req;
   }
 
   async syncProductToMerchantCenter(product) {
     try {
-      const req = await fetch(
-        `https://content.api.bingads.microsoft.com/shopping/v9.1/bmc/${process.env.BING_MERCHANT_ID}/products`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            DeveloperToken: process.env.BING_DEVELOPER_TOKEN,
-            AuthenticationToken: process.env.BING_ACCESS_TOKEN,
-          },
-          body: JSON.stringify({
-            product: this.makeProduct(product),
-          }),
-        }
-      );
+      const req = await fetch(this.bingApiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          DeveloperToken: this.bingDeveloperToken,
+          AuthenticationToken: this.bingAccessToken,
+        },
+        body: JSON.stringify({
+          product: this.makeProduct(product),
+        }),
+      });
       if (req.status === 201 || req.status === 200) {
         return req;
       } else {
         throw new Error(
-          `Error while adding product to bing merchant center. STATUS CODE : ${req.status} `
+          `Error while adding product to bing merchant center. STATUS CODE : ${req.status} `,
         );
       }
     } catch (error) {
       throw new Error(
-        `Error syncing product to Google Merchant Center ${error.message}`
+        `Error syncing product to bing Merchant Center ${error.message}`,
+      );
+    }
+  }
+  async deleteProduct(product) {
+    try {
+      const req = await fetch(`${this.bingApiUrl}/${product.id} `, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          DeveloperToken: this.bingDeveloperToken,
+          AuthenticationToken: this.bingAccessToken,
+        },
+        body: JSON.stringify({
+          product: this.makeProduct(product),
+        }),
+      });
+      if (req.status === 201 || req.status === 200) {
+        return req;
+      } else {
+        throw new Error(
+          `Error while DELETING product to bing merchant center. STATUS CODE : ${req.status} `,
+        );
+      }
+    } catch (error) {
+      throw new Error(
+        `Error DELETING product to bing Merchant Center ${error.message}`,
       );
     }
   }

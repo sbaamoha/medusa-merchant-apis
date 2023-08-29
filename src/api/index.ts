@@ -1,27 +1,33 @@
-const GoogleMerchant = require("../../../services/googleMerchant");
-const FacebookMerchant = require("../../../services/FacebookMerchant");
-const bingMerchant = require("../../../services/bingMerchant");
+// const GoogleMerchant = require("../../../services/googleMerchant");
+// const FacebookMerchant = require("../../../services/FacebookMerchant");
+// const bingMerchant = require("../../../services/bingMerchant");
+// const yandexMerchant = require("../../../services/");
 import { Router } from "express";
-// import bingMerchant from "../services/bingMerchant";
+import yandexMerchant from "../services/yandexMerchant";
+import bingMerchant from "../services/bingMerchant";
+import FacebookMerchant from "../services/facebookMerchant";
+import GoogleMerchant from "../services/googleMerchant";
 
-export default (rootDirectory) => {
+export default () => {
   const router = Router();
 
-  // add one product listing to all merchant apis : google - meta - bing
+  // add one product listing to all merchant apis : google - meta - bing - yandex
   router.post("/create-product", async (req, res) => {
     try {
       const newProduct = req.body; // Assuming the request body contains user data
-      const googleProduct = await GoogleMerchant.syncProductToMerchantCenter(
+      const googleProduct = await GoogleMerchant.prototype.syncProductToMerchantCenter(
         newProduct
       );
-      const bingProduct = await bingMerchant.syncProductToMerchantCenter(
+      const bingProduct = await bingMerchant.prototype.syncProductToMerchantCenter(
         newProduct
       );
-      const facebookProduct = await FacebookMerchant.addListingItem(newProduct);
+      const facebookProduct = await FacebookMerchant.prototype.addListingItem(newProduct);
+      const yandexProduct = await yandexMerchant.prototype.addProductToYandex(newProduct);
+     
       if (!newProduct) {
         throw new Error("no product received");
       }
-      if (!googleProduct || !facebookProduct || !bingProduct) {
+      if (!googleProduct || !facebookProduct || !bingProduct || !yandexProduct) {
         throw new Error("product not published in one or more merchant api");
       }
       res.status(201).json(newProduct);
@@ -35,7 +41,7 @@ export default (rootDirectory) => {
     try {
       const newProducts = req.body; // Assuming the request body contains user data
 
-      const metaProduct = await FacebookMerchant.addMultiListingProducts(
+      const metaProduct = await FacebookMerchant.prototype.addMultiListingProducts(
         newProducts
       );
       if (!newProducts) {
@@ -54,7 +60,7 @@ export default (rootDirectory) => {
   router.post("/create-multi-products-for-google", async (req, res) => {
     try {
       const newProducts = req.body; // Assuming the request body contains user data
-      const googleProduct = await GoogleMerchant.insertMultiProducts(
+      const googleProduct = await GoogleMerchant.prototype.insertMultiProducts(
         newProducts
       );
 
@@ -74,7 +80,7 @@ export default (rootDirectory) => {
   router.post("/create-multi-products-for-bing", async (req, res) => {
     try {
       const newProducts = req.body; // Assuming the request body contains user data
-      const bingProduct = await bingMerchant.insertMultiProducts(newProducts);
+      const bingProduct = await bingMerchant.prototype.insertMultiProducts(newProducts);
 
       if (!newProducts) {
         throw new Error("no product received");

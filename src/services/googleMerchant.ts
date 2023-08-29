@@ -1,27 +1,36 @@
 import { TransactionBaseService } from "@medusajs/medusa";
 import { google } from "googleapis";
 import { OAuth2Client } from "google-auth-library";
-import fetch from 'node-fetch';
-
-const oAuth2Client = new OAuth2Client({
-  clientId: process.env.GOOGLE_CLIENT_ID,
-  clientSecret: process.env.GOOGLE_SECRET,
-});
-// Initialize the Google API client
-const merchant = google.content({
-  version: "v2.1",
-  auth: oAuth2Client, // Initialize the authentication
-});
-
+import fetch from "node-fetch";
 class GoogleMerchant extends TransactionBaseService {
+  oAuth2Client;
+  merchant;
+  googleMerchantID;
+  constructor(props, options) {
+    super(props);
+    this.oAuth2Client = new OAuth2Client({
+      clientId:
+        options?.googleClientID ||
+        "273388557916-m0mu72kq8cj9i1iteqf3panmmnmthsrv.apps.googleusercontent.com",
+      clientSecret:
+        options?.googleSecret || "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",
+    });
+    this.merchant = google.content({
+      version: "v2.1",
+      auth: this.oAuth2Client || "", // Initialize the authentication
+    });
+    this.googleMerchantID = options.googleMerchantID || 5077196742;
+  }
+
   makeProduct(product) {
     return {
       title: product.title,
-      offerId: product.title + product.price, // Use a unique identifier for the product
+      offerId: crypto.randomUUID(), // Use a unique identifier for the product
       description: product.description,
       brand: product.brand,
       availability: product.availability,
       condition: product.condition,
+      targetCountry: product.targetCountry,
       imageLink: product.image_url,
       link: product.url,
       price: {
@@ -33,13 +42,9 @@ class GoogleMerchant extends TransactionBaseService {
   }
 
   async insertMultiProducts(products) {
-    function randomInRange(from, to) {
-      let r = Math.random();
-      return Math.floor(r * (to - from) + from);
-    }
     const entries = products.map((product) => ({
-      batchId: randomInRange(0, 999999),
-      merchantId: process.env.GOOGLE_MERCHANT_ID,
+      batchId: crypto.randomUUID(),
+      merchantId: this.googleMerchantID,
       method: "insert",
       product: this.makeProduct(product),
     }));
@@ -51,33 +56,28 @@ class GoogleMerchant extends TransactionBaseService {
           entries,
           kind: "content#productsCustomBatchResponse",
         }),
-      }
+      },
     );
     return req;
   }
 
-  // async syncAllProductsToMerchantCenter(products) {
-  //   try {
-  //     // for (const product of products) {
-  //     //   await this.syncProductToMerchantCenter(product);
-  //     // }
-  //     const responses = await this.batchInsertProducts(products);
-  //     responses.forEach((response, index) => {
-  //       if (response.data.kind === "content#productsInsertResponse") {
-  //         console.log(`Product ${index + 1} inserted:`, response.data);
-  //       } else {
-  //         console.error(`Error inserting product ${index + 1}:`, response.data);
-  //       }
-  //     });
-  //   } catch (error) {
-  //     throw new Error("Error syncing products to Google Merchant Center");
-  //   }
-  // }
   async syncProductToMerchantCenter(product) {
+    // this.merchant.delete()
     try {
-      const response = await merchant.products.insert({
-        merchantId: process.env.GOOGLE_MERCHANT_ID,
+      const response = await this.merchant.products.insert({
+        merchantId: this.googleMerchantID,
         requestBody: this.makeProduct(product),
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error("Error syncing product to Google Merchant Center");
+    }
+  }
+
+  async deleteProduct(product) {
+    try {
+      const response = await this.merchant.products.delete({
+        name: product.id,
       });
       return response.data;
     } catch (error) {
