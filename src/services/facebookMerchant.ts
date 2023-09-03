@@ -1,82 +1,90 @@
 import { TransactionBaseService } from "@medusajs/medusa";
-import fetch from "node-fetch";
+import { FacebookAdsApi, ProductCatalog } from "facebook-nodejs-business-sdk";
 
-class FacebookMerchant extends TransactionBaseService {
+import axios from "axios";
+class FacebookMerchantService extends TransactionBaseService {
   facebookPageAccessToken: string;
   facebookCatalogID: number;
   constructor(props, options) {
     super(props);
-    this.facebookPageAccessToken = options?.facebookPageAccessToken || "";
-    this.facebookCatalogID = options?.facebookCatalogID || "";
+
+    this.facebookCatalogID = options?.facebookCatalogID || 489393746048538;
+
+    this.facebookPageAccessToken =
+      options?.facebookPageAccessToken ||
+      "EAAC4WOLdXJcBO9hZCmVkRCuKQ0TxLnLrj9gzXPyfKe16UFrxCEEZA51nOKvV2jR0JHLkrANqKTdH0JJvA74vnQzeFoxA2uNpGzClsSJGjN9I2ckx768CFfQTIMfJ6emEOsI8jGQDuwGl8DZBMDzsTz1culEi54gCpQYHBn8umwKZBXIbOItZCSdI49MSTOXkZD";
+  }
+  makeFacebookProduct(product) {
+    return {
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      url: product.url,
+      availability: product.availability,
+      image_url: product.imageURL,
+      condition: product.condition,
+      currency: product.currency,
+      category: product.category,
+    };
   }
   async addMultiListingProducts(products) {
     const items = products.map((product) => ({
       method: "CREATE",
       retailer_id: 1,
-      data: product,
+      data: this.makeFacebookProduct(product),
     }));
 
     const body = {
       access_token: this.facebookPageAccessToken,
       requests: items,
     };
-    const res = await fetch(
+    const res = await axios.post(
       `https://graph.facebook.com/v17.0/${this.facebookCatalogID}/batch`,
+      body,
       {
-        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(body),
       },
     );
     return res;
   }
-  async addListingItem(product) {
+  async syncProductToMerchantCenter(product) {
     try {
       const body = {
         access_token: this.facebookPageAccessToken,
-        requests: {
-          method: "CREATE",
-          retailer_id: 1,
-          data: product,
-        },
+        requests: [
+          {
+            method: "CREATE",
+            retailer_id: 1,
+            data: this.makeFacebookProduct(product),
+          },
+        ],
       };
-      const res = await fetch(
+      const res = await axios.post(
         `https://graph.facebook.com/v17.0/${this.facebookCatalogID}/batch`,
+        body,
         {
-          method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(body),
         },
       );
+      console.log("Product added successfully:", res);
       return res;
     } catch (error) {
-      console.error(error);
+      console.error(`SERVICE ERR: ${error.message}`);
     }
   }
 
   async deleteProduct(product) {
     try {
-      const body = {
-        access_token: this.facebookPageAccessToken,
-        requests: {
-          method: "CREATE",
-          retailer_id: 1,
-          data: product,
-        },
-      };
-      const res = await fetch(
+      const res = await axios.delete(
         `https://graph.facebook.com/v17.0/${this.facebookCatalogID}/products/${product.id}`,
         {
-          method: "DELETE",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${this.facebookPageAccessToken}`,
           },
-          body: JSON.stringify(body),
         },
       );
       if (res.status === 200) {
@@ -95,4 +103,4 @@ class FacebookMerchant extends TransactionBaseService {
     }
   }
 }
-export default FacebookMerchant;
+export default FacebookMerchantService;

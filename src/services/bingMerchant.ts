@@ -1,23 +1,29 @@
 import { TransactionBaseService } from "@medusajs/medusa";
-import fetch from "node-fetch";
-// import crypto from "crypto"
-class bingMerchant extends TransactionBaseService {
+import axios from "axios";
+import crypto from "crypto";
+const token =
+  "eyJ0eXAiOiJKV1QiLCJub25jZSI6InhZNmJzX0VKenZ2a2xjcWwyYkhIY0NlV2Q1OFB3QmRHNnZOaUNWMW5Kb1UiLCJhbGciOiJSUzI1NiIsIng1dCI6Ii1LSTNROW5OUjdiUm9meG1lWm9YcWJIWkdldyIsImtpZCI6Ii1LSTNROW5OUjdiUm9meG1lWm9YcWJIWkdldyJ9.eyJhdWQiOiJodHRwczovL2dyYXBoLm1pY3Jvc29mdC5jb20iLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC9mOGNkZWYzMS1hMzFlLTRiNGEtOTNlNC01ZjU3MWU5MTI1NWEvIiwiaWF0IjoxNjkzNDc2OTc3LCJuYmYiOjE2OTM0NzY5NzcsImV4cCI6MTY5MzU2MzY3NywiYWlvIjoiRTJGZ1lPQUxXSlY2MWFMMFRma1htejBiS2w5TkJRQT0iLCJhcHBfZGlzcGxheW5hbWUiOiJtYXJvYyBmb3IgcHJvZHVjdHMiLCJhcHBpZCI6IjQwOTc0OTE4LTUwY2ItNGYyOS05Yzc3LWI1YzA2OWQyMDM5MyIsImFwcGlkYWNyIjoiMSIsImlkcCI6Imh0dHBzOi8vc3RzLndpbmRvd3MubmV0L2Y4Y2RlZjMxLWEzMWUtNGI0YS05M2U0LTVmNTcxZTkxMjU1YS8iLCJpZHR5cCI6ImFwcCIsInJoIjoiMC5BUjhBTWVfTi1CNmpTa3VUNUY5WEhwRWxXZ01BQUFBQUFBQUF3QUFBQUFBQUFBQUJBQUEuIiwidGVuYW50X3JlZ2lvbl9zY29wZSI6IldXIiwidGlkIjoiZjhjZGVmMzEtYTMxZS00YjRhLTkzZTQtNWY1NzFlOTEyNTVhIiwidXRpIjoiekVGeC1yLUVQMGFoSTFreTRkQkdBQSIsInZlciI6IjEuMCIsIndpZHMiOlsiMDk5N2ExZDAtMGQxZC00YWNiLWI0MDgtZDVjYTczMTIxZTkwIl0sInhtc190Y2R0IjoxMzM4MzM2Njg1fQ.nt1G62bxsamMNw2JSaLdNS7Zl60r3mOTXXAExPY7yYu2MqiULjfa3w7itZ7u46ZYkPdEEy6KIZcVKasQPKSZMJGguK2jO69Hm6YZ7TK53BpiMJXtm021D5uyRpQLdAYWIk-1b5NlL65uGPLDza9v4NlstA3U49o_d8nf0JQKSFp_hnWSIJ1_0078PxUF2Hpxira2ITw-yJo7gh5BGDHnoSmbkj0pVRKdFpBfTSouOQrEPUsf2B1yKUFsXlQa8FFP1UkEM89FhU0E4-hGzuIZaT9Vt45PfUOy7cq9VF7g9ObDhT6k6kwChIhTcC3tdKqzt-fwWiXSONyn0qmyfiTz0Q";
+class BingMerchantService extends TransactionBaseService {
   bingMerchantID: number;
   bingDeveloperToken: string;
   bingAccessToken: string;
   bingApiUrl: string;
-  constructor(props, options) {
-    super(props);
-    this.bingMerchantID = options?.bingMerchantID || "";
-    this.bingDeveloperToken = options?.bingDeveloperToken || "";
-    this.bingAccessToken = options?.bingAccessToken || "";
+  constructor(container, options) {
+    super(container);
+    this.bingMerchantID = options.bingMerchantID || 3475240;
+    this.bingDeveloperToken = options.bingDeveloperToken || "1206GD6U0Z312373";
+    this.bingAccessToken = options.bingAccessToken || token;
+    // If options is not provided, use default values
+    this.bingMerchantID = 3475240;
+    this.bingDeveloperToken = "1206GD6U0Z312373";
+    this.bingAccessToken = token;
     this.bingApiUrl =
       `https://content.api.bingads.microsoft.com/shopping/v9.1/bmc/${this.bingMerchantID}/products` ||
       "";
   }
   makeProduct(product) {
     return {
-      title: product.title,
+      title: product.name,
       description: product.description,
       offerId: crypto.randomUUID(), // Use a unique identifier for the product
       brand: product.brand,
@@ -42,28 +48,40 @@ class bingMerchant extends TransactionBaseService {
       method: "insert",
       product: this.makeProduct(product),
     }));
-    const req = await fetch(`${this.bingApiUrl}/batch`, {
-      method: "POST",
-      body: JSON.stringify({
+    const req = await axios.post(
+      `${this.bingApiUrl}/batch`,
+      {
         entries,
-      }),
-    });
+      },
+      {
+        headers: {
+          DeveloperToken: this.bingDeveloperToken,
+          AuthenticationToken: this.bingAccessToken,
+        },
+      },
+    );
     return req;
   }
 
   async syncProductToMerchantCenter(product) {
     try {
-      const req = await fetch(this.bingApiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          DeveloperToken: this.bingDeveloperToken,
-          AuthenticationToken: this.bingAccessToken,
-        },
-        body: JSON.stringify({
+      // console.log(this.makeProduct(product));
+      // console.log(this.bingAccessToken);
+      // console.log(this.bingMerchantID);
+      // console.log(this.bingApiUrl);
+
+      const req = await axios.post(
+        this.bingApiUrl,
+        {
           product: this.makeProduct(product),
-        }),
-      });
+        },
+        {
+          headers: {
+            DeveloperToken: this.bingDeveloperToken,
+            AuthenticationToken: this.bingAccessToken,
+          },
+        },
+      );
       if (req.status === 201 || req.status === 200) {
         return req;
       } else {
@@ -79,16 +97,11 @@ class bingMerchant extends TransactionBaseService {
   }
   async deleteProduct(product) {
     try {
-      const req = await fetch(`${this.bingApiUrl}/${product.id} `, {
-        method: "DELETE",
+      const req = await axios.delete(`${this.bingApiUrl}/${product.id} `, {
         headers: {
-          "Content-Type": "application/json",
           DeveloperToken: this.bingDeveloperToken,
           AuthenticationToken: this.bingAccessToken,
         },
-        body: JSON.stringify({
-          product: this.makeProduct(product),
-        }),
       });
       if (req.status === 201 || req.status === 200) {
         return req;
@@ -105,4 +118,4 @@ class bingMerchant extends TransactionBaseService {
   }
 }
 
-export default bingMerchant;
+export default BingMerchantService;

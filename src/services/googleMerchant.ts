@@ -1,23 +1,22 @@
 import { TransactionBaseService } from "@medusajs/medusa";
 import { google } from "googleapis";
-import { OAuth2Client } from "google-auth-library";
-import fetch from "node-fetch";
-class GoogleMerchant extends TransactionBaseService {
-  oAuth2Client;
+import crypto from "crypto";
+
+import axios from "axios";
+
+class GoogleMerchantService extends TransactionBaseService {
+  auth;
   merchant;
   googleMerchantID;
   constructor(props, options) {
     super(props);
-    this.oAuth2Client = new OAuth2Client({
-      clientId:
-        options?.googleClientID ||
-        "273388557916-m0mu72kq8cj9i1iteqf3panmmnmthsrv.apps.googleusercontent.com",
-      clientSecret:
-        options?.googleSecret || "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",
+    this.auth = new google.auth.GoogleAuth({
+      credentials: JSON.parse(process.env.SERVICE_ACCOUNT_KEY),
+      scopes: ["https://www.googleapis.com/auth/content"],
     });
     this.merchant = google.content({
       version: "v2.1",
-      auth: this.oAuth2Client || "", // Initialize the authentication
+      auth: this.auth, // Initialize the authentication
     });
     this.googleMerchantID = options.googleMerchantID || 5077196742;
   }
@@ -38,52 +37,74 @@ class GoogleMerchant extends TransactionBaseService {
         currency: product.currency,
       },
       googleProductCategory: product.category,
+      contentLanguage: "ar",
+      channel: "online",
     };
   }
 
   async insertMultiProducts(products) {
-    const entries = products.map((product) => ({
-      batchId: crypto.randomUUID(),
-      merchantId: this.googleMerchantID,
-      method: "insert",
-      product: this.makeProduct(product),
-    }));
-    const req = await fetch(
-      "https://shoppingcontent.googleapis.com/content/v2.1/products/batch",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          entries,
-          kind: "content#productsCustomBatchResponse",
-        }),
-      },
-    );
-    return req;
+    try {
+      this.merchant = google.content({
+        version: "v2.1",
+        auth: this.auth, // Initialize the authentication
+      });
+      const entries = products.map((product) => ({
+        batchId: crypto.randomUUID(),
+        merchantId: this.googleMerchantID,
+        method: "insert",
+        product: this.makeProduct(product),
+      }));
+      const response = await this.merchant.products.insert({
+        merchantId: this.googleMerchantID,
+        requestBody: entries,
+      });
+      // const req = await axios.post(
+      //   "https://shoppingcontent.googleapis.com/content/v2.1/products/batch",
+      //   {
+      //     entries,
+      //     kind: "content#productsCustomBatchResponse",
+      //   },
+      //   {
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //       Authorization: `Bearer ${this.googleAccessToken}`,
+      //     },
+      //   },
+      // );
+      return response;
+    } catch (error) {
+      console.error(error.message);
+    }
   }
 
   async syncProductToMerchantCenter(product) {
-    // this.merchant.delete()
     try {
       const response = await this.merchant.products.insert({
         merchantId: this.googleMerchantID,
         requestBody: this.makeProduct(product),
       });
-      return response.data;
+      console.log("Product added successfully:", response.data);
+      return response;
     } catch (error) {
-      throw new Error("Error syncing product to Google Merchant Center");
+      throw new Error(
+        `SERVICES ERROR: syncing product to Google Merchant Center ${error.message} `,
+      );
     }
   }
 
-  async deleteProduct(product) {
+  async deleteProduct(productId) {
     try {
       const response = await this.merchant.products.delete({
-        name: product.id,
+        merchantId: this.googleMerchantID,
+        productId,
       });
       return response.data;
     } catch (error) {
-      throw new Error("Error syncing product to Google Merchant Center");
+      throw new Error(
+        `SERVICES ERROR: deleting product from Google Merchant Center ${error.message} `,
+      );
     }
   }
 }
 
-export default GoogleMerchant;
+export default GoogleMerchantService;
