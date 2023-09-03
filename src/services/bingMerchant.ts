@@ -8,11 +8,19 @@ class BingMerchantService extends TransactionBaseService {
   bingDeveloperToken: string;
   bingAccessToken: string;
   bingApiUrl: string;
+  bingTenant;
+  bingClientID;
+  bingClientSecret;
   constructor(container, options) {
     super(container);
-    this.bingMerchantID = options.bingMerchantID || 3475240;
-    this.bingDeveloperToken = options.bingDeveloperToken || "1206GD6U0Z312373";
-    this.bingAccessToken = options.bingAccessToken || token;
+    this.bingClientID = options?.bingClientID || "";
+    this.bingClientSecret = options?.bingClientSecret || "";
+
+    this.bingTenant =
+      options?.bingTenant || "f8cdef31-a31e-4b4a-93e4-5f571e91255a";
+    this.bingMerchantID = options?.bingMerchantID || 3475240;
+    this.bingDeveloperToken = options?.bingDeveloperToken || "1206GD6U0Z312373";
+    this.bingAccessToken = options?.bingAccessToken || token;
     // If options is not provided, use default values
     this.bingMerchantID = 3475240;
     this.bingDeveloperToken = "1206GD6U0Z312373";
@@ -20,6 +28,35 @@ class BingMerchantService extends TransactionBaseService {
     this.bingApiUrl =
       `https://content.api.bingads.microsoft.com/shopping/v9.1/bmc/${this.bingMerchantID}/products` ||
       "";
+  }
+  async getAccessToken() {
+    try {
+      // here get the refresh token from DB
+      const refreshToken: string = "";
+      // Here request a new access token using the refresh token
+      const token = await axios.post(
+        `https://login.microsoftonline.com/${this.bingTenant}/oauth2/v2.0/token`,
+        {
+          client_id: this.bingClientID,
+          client_secret: this.bingClientSecret,
+          grant_type: "refresh_token",
+          scope: "https%3A%2F%2Fads.microsoft.com%2Fmsads.manage",
+          refresh_token: refreshToken,
+        },
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        },
+      );
+
+      // here save the token.refresh_token to the database
+
+      // return access token
+      return token;
+    } catch (error) {
+      console.error(error.message);
+    }
   }
   makeProduct(product) {
     return {
@@ -65,6 +102,7 @@ class BingMerchantService extends TransactionBaseService {
 
   async syncProductToMerchantCenter(product) {
     try {
+      const token = await this.getAccessToken();
       // console.log(this.makeProduct(product));
       // console.log(this.bingAccessToken);
       // console.log(this.bingMerchantID);
@@ -78,7 +116,7 @@ class BingMerchantService extends TransactionBaseService {
         {
           headers: {
             DeveloperToken: this.bingDeveloperToken,
-            AuthenticationToken: this.bingAccessToken,
+            // AuthenticationToken: token?.access_token,
           },
         },
       );
