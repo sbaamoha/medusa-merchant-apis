@@ -22,6 +22,17 @@ class GetProductsService extends TransactionBaseService {
       brand: product.brand,
     };
   }
+  makeYandexProduct(product) {
+    return {
+      ID: product.id,
+      Title: product.title,
+      Description: product.description,
+      Price: product.price,
+      URL: product.link,
+      Image: product.image_url,
+      Currency: "USD",
+    };
+  }
   makeGoogleProduct(product) {
     return {
       id: product.id,
@@ -114,6 +125,12 @@ class GetProductsService extends TransactionBaseService {
       if (platform === "tiktok") {
         const products = items.map((product) => {
           return this.makeTiktokProduct(product);
+        });
+        return products;
+      }
+      if (platform === "yandex") {
+        const products = items.map((product) => {
+          return this.makeYandexProduct(product);
         });
         return products;
       }

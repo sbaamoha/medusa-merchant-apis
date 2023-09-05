@@ -10,6 +10,8 @@ export default () => {
 
   router.get("/grab-products", async (req, res) => {
     try {
+      // here im grabing the username as the name of the service to
+      // built the object according to it so its service name not username
       const user = req.body;
       const getProductsService: GetProductsService =
         req.scope.resolve("getProductsService");
