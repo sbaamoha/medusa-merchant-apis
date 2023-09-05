@@ -1,14 +1,44 @@
 import express, { Router } from "express";
+
+import { Product, ProductPrice, FeedBuilder } from "node-product-catalog-feed";
 import FacebookMerchantService from "../services/facebookMerchant";
 import GoogleMerchantService from "../services/googleMerchant";
 import BingMerchantService from "../services/bingMerchant";
 import YandexMerchantService from "../services/yandexMerchant";
 import SnapchatMerchantService from "../services/snapchatMerchant";
 import TiktokMerchantService from "../services/tiktokMerchant";
+import GetProductsService from "../services/getProducts";
+import axios from "axios";
+import path from "path";
+import fs from "fs";
+import { parse } from "json2csv";
+import xmlbuilder from "xmlbuilder";
 export default () => {
   const router = Router();
   router.use(express.json());
   router.use(express.urlencoded({ extended: false }));
+
+  router.get("/grab-products", async (req, res) => {
+    try {
+      const getProductsService: GetProductsService =
+        req.scope.resolve("getProductsService");
+      // grab all products from database
+      const jsonProducts = await getProductsService.getProducts("tiktok");
+      const csv = parse(jsonProducts);
+
+      console.log(jsonProducts);
+      console.log(csv);
+      fs.writeFileSync("productsCsv.csv", csv);
+      res.download("productsCsv.csv", "productsCsv.csv", (err) => {
+        if (err) {
+          console.error("Error sending file:", err);
+          res.status(500).send("Internal Server Error");
+        }
+      });
+    } catch (error) {
+      res.status(500).json(error.message);
+    }
+  });
 
   // add one product listing to all merchant apis : google - meta - bing - yandex
   router.post("/create-product", async (req, res) => {
@@ -37,32 +67,34 @@ export default () => {
         throw new Error("no product received");
       }
 
-      // const googleProduct = await GoogleMerchant.syncProductToMerchantCenter(
-      //   newProduct,
-      // );
+      const googleProduct = await GoogleMerchant.syncProductToMerchantCenter(
+        newProduct,
+      );
       // const bingProduct = await bingMerchant.syncProductToMerchantCenter(
       //   newProduct,
       // );
-      // const facebookProduct =
-      //   await FacebookMerchant.syncProductToMerchantCenter(newProduct);
+      const facebookProduct =
+        await FacebookMerchant.syncProductToMerchantCenter(newProduct);
       // const yandexProduct = await yandexMerchant.syncProductToMerchantCenter(
       //   newProduct,
       // );
-      const snapchatProduct =
-        await snapchatMerchant.syncProductToMerchantCenter(newProduct);
-      // const tiktokProduct =
-      //   await tiktokMerchant.syncProductToMerchantCenter(newProduct);
+      // const snapchatProduct =
+      //   await snapchatMerchant.syncProductToMerchantCenter(newProduct);
+      const tiktokProduct = await tiktokMerchant.syncProductToMerchantCenter(
+        newProduct,
+      );
       // console.log(`///// ${facebookProduct}`);
       if (
-        // !googleProduct
+        // !googleProduct ||
         // !facebookProduct
         // !bingProduct
         // !yandexProduct
-        !snapchatProduct
+        // !snapchatProduct
         // !tiktokProduct
+        tiktokProduct.status !== 200
       ) {
         throw new Error(
-          ` product not published in one or more merchant api ${snapchatProduct} `,
+          ` product not published in one or more merchant api ${tiktokProduct.message} `,
         );
       }
       res.status(201).json(newProduct);

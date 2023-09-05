@@ -1,15 +1,11 @@
 import { TransactionBaseService } from "@medusajs/medusa";
-import { FacebookAdsApi, ProductCatalog } from "facebook-nodejs-business-sdk";
-
 import axios from "axios";
 class FacebookMerchantService extends TransactionBaseService {
   facebookPageAccessToken: string;
   facebookCatalogID: number;
   constructor(props, options) {
     super(props);
-
     this.facebookCatalogID = options?.facebookCatalogID || 489393746048538;
-
     this.facebookPageAccessToken =
       options?.facebookPageAccessToken ||
       "EAAC4WOLdXJcBO9hZCmVkRCuKQ0TxLnLrj9gzXPyfKe16UFrxCEEZA51nOKvV2jR0JHLkrANqKTdH0JJvA74vnQzeFoxA2uNpGzClsSJGjN9I2ckx768CFfQTIMfJ6emEOsI8jGQDuwGl8DZBMDzsTz1culEi54gCpQYHBn8umwKZBXIbOItZCSdI49MSTOXkZD";
@@ -70,17 +66,17 @@ class FacebookMerchantService extends TransactionBaseService {
           },
         },
       );
-      console.log("Product added successfully:", res);
+      console.log("Product added successfully:", res.status);
       return res;
     } catch (error) {
       console.error(`SERVICE ERR: ${error.message}`);
     }
   }
 
-  async deleteProduct(product) {
+  async deleteProduct(productId) {
     try {
       const res = await axios.delete(
-        `https://graph.facebook.com/v17.0/${this.facebookCatalogID}/products/${product.id}`,
+        `https://graph.facebook.com/v17.0/${this.facebookCatalogID}/products/${productId}`,
         {
           headers: {
             Authorization: `Bearer ${this.facebookPageAccessToken}`,

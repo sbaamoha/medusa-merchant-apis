@@ -10,7 +10,7 @@ class SnapchatMerchantService extends TransactionBaseService {
     super(props);
     this.snapchatAccessToken =
       options?.snapchatAccessToken ||
-      "eyJpc3MiOiJodHRwczpcL1wvYWNjb3VudHMuc25hcGNoYXQuY29tXC9hY2NvdW50c1wvb2F1dGgyXC90b2tlbiIsInR5cCI6IkpXVCIsImVuYyI6IkExMjhDQkMtSFMyNTYiLCJhbGciOiJkaXIiLCJraWQiOiJhY2Nlc3MtdG9rZW4tYTEyOGNiYy1oczI1Ni4wIn0..pe5UEg4URP8uM3qiRrUl4g._ZjxvEb1D1Ija8WKR1vE2d8UomPP_tWfTqgwmHRxc_uNENmxwTtrHKqFJ2fxaKYSfryosVg2ZFdO26kCNWWD_uCN1xoYi33ld6Y1BsGoZnLOrnz3UANe0guNaoRgmgO6GPWPHf9bhbP2MYv7Q_TC9Mao_mfa-thPypcjZcHxvxn1UxH8EdxO8_e8BYdV9pa93RnPgN2HyGAIUcdVsw0CvJY8M2NU-Q1yQTU4nwJoPKBYJ_tJUAI-luDZIw4yMGnUENCfB5MUXcS74pDRA_PmI9kab9naz4hKPxn0uyia-PBk8EY6FR_OFWcqWHyZSmbbSGaZ1A9Si2CKJu36mH1ySb-uIShcOS_FL-WmfOltqH9COQ9LHlre4w-K8DGEeZYdqc3X2sahk2SzdaJEyNDVOX5TkBPQPY6sfsIk5wmYuSO1vlK6oUsOn7osZ0pYYIyDQIqljGu5zq6Zo4mGN_tzsdDRYV-Yyo4xqTqH3N6jqwFfEApjNbmkxcEObLGj2tqNv1u8RWzc5v3a6slcO4f9Ri_VXpGEEV6aShJoxjNf__0d9RgyQ4Dj1ZAvm4z9ctP4_209T0luT7blM7GE71Oaah3BaEVhUBCeTS3kODTKqB3xXSroZuhDm-EJhFmx6xvz3y2Y8ets0F_0ene5fUZHH-g_HN10mBqYoPv1ICN5JLnRhlY6ZqfQjJx9YV6UCkjSM_l6XsWeuKPfV3juoU-RqZgD-JOFnNJDIxRB38RayeU.NhENPSOzopx10AYTK984Ew";
+      "eyJpc3MiOiJodHRwczpcL1wvYWNjb3VudHMuc25hcGNoYXQuY29tXC9hY2NvdW50c1wvb2F1dGgyXC90b2tlbiIsInR5cCI6IkpXVCIsImVuYyI6IkExMjhDQkMtSFMyNTYiLCJhbGciOiJkaXIiLCJraWQiOiJhY2Nlc3MtdG9rZW4tYTEyOGNiYy1oczI1Ni4wIn0..iPlHHonV-bIPEZFMkaFP_w.0qqE7xhCQ4bJx4-Ow91mIfe81t8WsoLPjVLPRGZbRZGJ7AjHZqIg3-SCDajJuELnb2G2FTnWm_UDfbR1x1qIJNQHMveQ_O0hhwlj8BDtUjywnXzSm5JxMi60gt2EVr7cBAW6jP-fbE4XcOCi0CFhKVg3Gg2lxfojurI_BjkRWmojzEHaf1M6xhtUFE7D9xoS2hZMF2fzZP03-yznSU9HwxYSeeXxt5QCRedFk5do5OFnHBWrZ_ZMqV1k61Gp-IFNOWIzuuBBIns_IPo9Ebm7KkPvcwPeIK5oL18oEeMDOXMPGeZ8x7HtVXzZUmmtdcrpJzIs-lIX7OkriE2pqquH_cn7X1RE6m9gdUVo68FHnA_K60fUWyE9cntZXvzplZ1Nds48Fr27rf8QZcx3iS4D_XmJi3MTjM9LrH1ul3Od2RmXylWxuDMrs321u3dSIbtAlzth2EAZUOAtsNs5523Fp2xl1_bcTfICLEt6gpPqGn4vF_2YKvxIbSEapSBVlEFzAz6YO78MGMqEA21AJP_SWfnNdhcdhKHFBa216X7Hb_LRm9vOOlc-zn17wc_Z5iJSsxetWgmqPcCpwg0bvKlfnmZ2CXcv3jhecHXMo79xltK9h3JHcFIBvThY6j2Y3Ncja8KQa5ftVNULboFdsEXqO6xvvWRLYBAZQOiGoQzovsCgw1k6vQd_f3TsqlaP79qEyvNW6SYV34TJi4Nv4KhLS-PhMySTexyDBlixDoTa7W8.ScJWXyySGkMXB3U2w9k36A";
     this.snapchatApiUrl = "https://adsapi.snapchat.com/v1/catalogs";
   }
   async getAccessToken() {
@@ -56,19 +56,14 @@ class SnapchatMerchantService extends TransactionBaseService {
   }
   async syncProductToMerchantCenter(product) {
     try {
-      const token = await this.getAccessToken();
+      // const token = await this.getAccessToken();
 
-      const res = await axios.post(
-        this.snapchatApiUrl,
-
-        product,
-        {
-          headers: {
-            // Authorization: `Bearer  + ${token.access_token}`,
-          },
+      const res = await axios.post(this.snapchatApiUrl, product, {
+        headers: {
+          Authorization: `Bearer ${this.snapchatAccessToken}`,
         },
-      );
-      console.log(res);
+      });
+      console.log(res.status);
       return res;
     } catch (error) {
       console.error(error.message);

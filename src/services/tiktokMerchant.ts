@@ -10,9 +10,10 @@ class TiktokMerchantService extends TransactionBaseService {
   headers;
   constructor(props, options) {
     super(props);
-    this.tiktokAccessToken = options?.tiktokAccessToken || "";
-    this.tiktok_bc_id = options?.tiktok_bc_id || "";
-    this.tiktokCatalogID = options?.tiktokCatalogID || "";
+    this.tiktokAccessToken =
+      options?.tiktokAccessToken || "cff5162b0287f2e9e68c391115e970363d5fa01a";
+    this.tiktok_bc_id = options?.tiktok_bc_id || "7147724055544610817";
+    this.tiktokCatalogID = options?.tiktokCatalogID || "7147720826203260674";
     this.tiktokApiUrl =
       "https://business-api.tiktok.com/open_api/v1.3/catalog/product";
     this.headers = {
@@ -35,9 +36,9 @@ class TiktokMerchantService extends TransactionBaseService {
         currency: product.currency || "SAR",
       },
       landing_page: {
-        landing_page_url: product.link,
+        landing_page_url: product.url,
       },
-      image_link: product.image_url,
+      image_url: product.image_url,
       link: product.url,
     };
   }
@@ -45,7 +46,7 @@ class TiktokMerchantService extends TransactionBaseService {
   async syncProductToMerchantCenter(product) {
     try {
       console.log("/////////////////// TIKTOK SERVICE");
-      console.log(product);
+      // console.log(this.makeProduct(product));
       const response = await axios.post(
         `${this.tiktokApiUrl}/upload`,
         {
@@ -53,10 +54,25 @@ class TiktokMerchantService extends TransactionBaseService {
           catalog_id: this.tiktokCatalogID,
           products: [this.makeProduct(product)],
         },
-        this.headers,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Token": this.tiktokAccessToken,
+          },
+        },
       );
 
-      return response;
+      if (response.data.message === "OK") {
+        return {
+          status: 200,
+          message: response.data.message,
+        };
+      } else {
+        return {
+          status: response.data.code,
+          message: response.data.message,
+        };
+      }
     } catch (error) {
       throw new Error(
         `SERVICES ERROR: syncing product to tiktok Merchant Center ${error.message} `,
@@ -73,10 +89,24 @@ class TiktokMerchantService extends TransactionBaseService {
           catalog_id: this.tiktokCatalogID,
           products: items,
         },
-        this.headers,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Token": this.tiktokAccessToken,
+          },
+        },
       );
-
-      return response;
+      if (response.data.message === "OK") {
+        return {
+          status: 200,
+          message: response.data.message,
+        };
+      } else {
+        return {
+          status: response.data.code,
+          message: response.data.message,
+        };
+      }
     } catch (error) {
       throw new Error(
         `SERVICES ERROR: syncing product to tiktok Merchant Center ${error.message} `,

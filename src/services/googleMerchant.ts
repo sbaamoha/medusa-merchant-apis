@@ -2,8 +2,6 @@ import { TransactionBaseService } from "@medusajs/medusa";
 import { google } from "googleapis";
 import crypto from "crypto";
 
-import axios from "axios";
-
 class GoogleMerchantService extends TransactionBaseService {
   auth;
   merchant;
@@ -11,12 +9,14 @@ class GoogleMerchantService extends TransactionBaseService {
   constructor(props, options) {
     super(props);
     this.auth = new google.auth.GoogleAuth({
-      credentials: JSON.parse(process.env.SERVICE_ACCOUNT_KEY),
+      credentials:
+        JSON.parse(process.env.SERVICE_ACCOUNT_KEY) ||
+        JSON.parse(options?.googleServiceKey),
       scopes: ["https://www.googleapis.com/auth/content"],
     });
     this.merchant = google.content({
       version: "v2.1",
-      auth: this.auth, // Initialize the authentication
+      auth: this.auth,
     });
     this.googleMerchantID = options.googleMerchantID || 5077196742;
   }
