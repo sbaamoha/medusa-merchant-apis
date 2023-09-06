@@ -1,4 +1,5 @@
 import express, { Router } from "express";
+import GoogleMerchantService from "../services/googleMerchant";
 
 import GetProductsService from "../services/getProducts";
 import fs from "fs";
@@ -12,9 +13,6 @@ export default () => {
   router.use(express.json());
   router.use(express.urlencoded({ extended: false }));
 
-  router.get("/grab", async (req, res) => {
-    res.status(500).json("error.message");
-  });
   router.get("/grab-products", async (req, res) => {
     try {
       // here im grabing the username as the name of the service to
@@ -94,6 +92,27 @@ export default () => {
       res.status(500).json(error.message);
     }
   });
+  router.post("/create-multi-products-for-google", async (req, res) => {
+    try {
+      const GoogleMerchant: GoogleMerchantService = req.scope.resolve(
+        "googleMerchantService",
+      );
 
+      const newProducts = req.body; // Assuming the request body contains user data
+      const googleProduct = await GoogleMerchant.insertMultiProducts(
+        newProducts,
+      );
+
+      if (!newProducts) {
+        throw new Error("no product received");
+      }
+      if (!googleProduct) {
+        throw new Error("product not published in google merchant center");
+      }
+      res.status(201).json(googleProduct);
+    } catch (error) {
+      res.status(500).json(error.message);
+    }
+  });
   return router;
 };
