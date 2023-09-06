@@ -8,18 +8,30 @@ class GetProductsService extends TransactionBaseService {
   }
   makeTiktokProduct(product) {
     return {
-      sku_id: product.sku || product.id,
-      title: product.title,
-      description: product.description,
-      price: `${product.price} ${product.currency}`,
-      link: product.link,
-      availability: product.status,
-      image_link: product.imageLink,
-      condition: product.condition,
+      sku_id: 122,
+      title: "product.title",
+      description: "product.description",
+      price: "22 SAR",
+      link: "https://maroc4products.com",
+      availability: "in stock",
+      image_link: "https://picsum.photos/200/300",
+      condition: "new",
       // currency: product.currency,
-      category: product.category,
-      mpn: product.handle,
-      brand: product.brand,
+      category: "skin care",
+      mpn: "G34423E",
+      brand: "nike",
+      // sku_id: product.sku || product.id,
+      // title: product.title,
+      // description: product.description,
+      // price: `${product.price} ${product.currency}`,
+      // link: product.link,
+      // availability: product.status,
+      // image_link: product.imageLink,
+      // condition: product.condition,
+      // // currency: product.currency,
+      // category: product.category,
+      // mpn: product.handle,
+      // brand: product.brand,
     };
   }
   makeYandexProduct(product) {
@@ -35,31 +47,53 @@ class GetProductsService extends TransactionBaseService {
   }
   makeGoogleProduct(product) {
     return {
-      id: product.id,
-      title: product.title,
-      description: product.description,
-      price: `${product.price} ${product.currency}`,
-      link: product.link,
-      availability: product.availability,
-      image_link: product.image_url,
-      condition: product.condition || "new",
+      id: 122,
+      title: "product.title",
+      description: "product.description",
+      price: "22 SAR",
+      link: "https://maroc4products.com",
+      availability: "in_stock",
+      image_link: "https://picsum.photos/200/300",
+      condition: "new",
+      brand: "nike",
       // currency: product.currency,
-      category: product.category,
-      mpn: product.handle,
+      // category: "skin care",
+      // id: product.id,
+      // title: product.title,
+      // description: product.description,
+      // price: `${product.price} ${product.currency}`,
+      // link: product.link,
+      // availability: product.availability,
+      // image_link: product.image_url,
+      // condition: product.condition || "new",
+      // // currency: product.currency,
+      // category: product.category,
+      mpn: "GG4343DLS2",
     };
   }
   makeFacebookProduct(product) {
     return {
-      id: product.id,
-      title: product.title,
-      description: product.description,
-      price: `${product.price} ${product.currency}`,
-      link: product.link,
-      availability: product.availability,
-      image_url: product.image_url,
-      condition: product.condition || "new",
+      id: 122,
+      title: "product.title",
+      description: "product.description",
+      price: "22 SAR",
+      link: "https://maroc4products.com",
+      availability: "in stock",
+      image_link: "https://picsum.photos/200/300",
+      condition: "new",
       // currency: product.currency,
-      category: product.category,
+      // category: "skin care",
+      brand: "nike",
+      // id: product.id,
+      // title: product.title,
+      // description: product.description,
+      // price: `${product.price} ${product.currency}`,
+      // link: product.link,
+      // availability: product.availability,
+      // image_link: product.image_url,
+      // condition: product.condition || "new",
+      // // currency: product.currency,
+      // brand: product.brand,
     };
   }
 
@@ -105,9 +139,24 @@ class GetProductsService extends TransactionBaseService {
         return products;
       }
       if (platform === "google") {
-        const products = items.map((product) => {
-          return this.makeGoogleProduct(product);
-        });
+        const products = [
+          this.makeGoogleProduct(items[0]),
+          {
+            id: 23432,
+            title: "product.name",
+            description: "product.description",
+            price: "92 SAR",
+            link: "https://maroc4products.com",
+            availability: "in_stock",
+            image_link: "https://picsum.photos/200/300",
+            condition: "new",
+            brand: "nike",
+            mpn: "HHGD82839S",
+          },
+        ];
+        // const products = items.map((product) => {
+        // return this.makeGoogleProduct(items[0]);
+        // });
         return products;
       }
       if (platform === "bing") {
