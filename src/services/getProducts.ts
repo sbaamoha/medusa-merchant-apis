@@ -139,6 +139,7 @@ class GetProductsService extends TransactionBaseService {
         return products;
       }
       if (platform === "google") {
+<<<<<<< Updated upstream
         const products = [
           this.makeGoogleProduct(items[0]),
           {
@@ -158,6 +159,47 @@ class GetProductsService extends TransactionBaseService {
         // return this.makeGoogleProduct(items[0]);
         // });
         return products;
+=======
+        // const products = items.map((product) => {
+        //   return this.makeGoogleProduct(product);
+        // });
+        // return products;
+        const products = [
+          {
+            title: "tshirt one",
+            id: 1,
+            description: "product description",
+            brand: "nike",
+            availability: "in_stock",
+            condition: "new",
+            targetCountry: "US",
+            image_url: "https://picsum.photos/200/300",
+            url: "https://maroc4products.com",
+            price: 99,
+            currency: "SAR",
+            category: "skin",
+            contentLanguage: "ar",
+            channel: "online",
+          },
+          {
+            title: "Tshirt 3",
+            id: 2,
+            description: "product. description",
+            brand: "nike",
+            availability: "in_stock",
+            condition: "new",
+            targetCountry: "US",
+            image_url: "https://picsum.photos/200/300",
+            url: "https://maroc4products.com",
+            price: 209,
+            currency: "SAR",
+            googleProductCategory: "skin",
+            contentLanguage: "ar",
+            channel: "online",
+          },
+        ];
+        return products.map((product) => this.makeGoogleProduct(product));
+>>>>>>> Stashed changes
       }
       if (platform === "bing") {
         const products = items.map((product) => {

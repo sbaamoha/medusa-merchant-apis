@@ -42,20 +42,18 @@ class GoogleMerchantService extends TransactionBaseService {
 
   async insertMultiProducts(products) {
     try {
-      this.merchant = google.content({
-        version: "v2.1",
-        auth: this.auth, // Initialize the authentication
-      });
+      // const products = JSON.parse(JSON.stringify(items));
       const entries = products.map((product) => ({
         batchId: crypto.randomUUID(),
         merchantId: this.googleMerchantID,
         method: "insert",
-        product: this.makeProduct(product),
+        requestBody: this.makeProduct(product),
       }));
-      const response = await this.merchant.products.insert({
+      const response = await this.merchant.products.custombatch({
         merchantId: this.googleMerchantID,
-        requestBody: entries,
+        requests: entries,
       });
+<<<<<<< Updated upstream
       // const req = await axios.post(
       //   "https://shoppingcontent.googleapis.com/content/v2.1/products/batch",
       //   {
@@ -69,6 +67,10 @@ class GoogleMerchantService extends TransactionBaseService {
       //     },
       //   },
       // );
+=======
+      console.log("Products added successfully:", response.data);
+
+>>>>>>> Stashed changes
       return response;
     } catch (error) {
       console.error(error.message);
