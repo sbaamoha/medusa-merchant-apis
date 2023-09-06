@@ -2,8 +2,6 @@ import { TransactionBaseService } from "@medusajs/medusa";
 import { google } from "googleapis";
 import crypto from "crypto";
 
-import axios from "axios";
-
 class GoogleMerchantService extends TransactionBaseService {
   auth;
   merchant;
