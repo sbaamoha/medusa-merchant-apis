@@ -1,4 +1,4 @@
-import { TransactionBaseService } from "@medusajs/medusa";
+import { Product, TransactionBaseService } from "@medusajs/medusa";
 import { ProductService } from "@medusajs/medusa";
 class GetProductsService extends TransactionBaseService {
   private productService: ProductService;
@@ -8,63 +8,64 @@ class GetProductsService extends TransactionBaseService {
   }
   makeTiktokProduct(product) {
     return {
-      sku_id: product.sku || product.id,
-      title: product.title,
-      description: product.description,
-      price: `${product.price} ${product.currency}`,
-      link: product.link,
-      availability: product.status,
-      image_link: product.imageLink,
-      condition: product.condition,
-      category: product.category,
-      mpn: product.handle,
-      brand: product.brand,
+      sku_id: product.variants[0].sku ,
+      title: product.title_ar,
+      description: product.description_ar,
+      price: `${product.variants[0].prices[0].amount/100} ${product.variants[0].prices[0].currency_code}`,
+      link: `https://maroc4products.com/ar/products/${product.handle}`,
+      availability: "in stock",
+      image_link: product.thumbnail,
+      condition: "new",
+      category: product.categories[0],
+      mpn: product.mid_code,
+      brand: "maroc4products",
     };
   }
   makeYandexProduct(product) {
     return {
       ID: product.id,
-      Title: product.title,
-      Description: product.description,
-      Price: product.price,
-      URL: product.link,
-      Image: product.image_url,
+      Title: product.title_ar,
+      Description: product.description_ar,
+      Price: product.variants[0].amount,
+      URL: `https://maroc4products.com/ar/products/${product.handle}`,
+      Image: product.thumbnail,
       Currency: "USD", // default
     };
   }
   makeGoogleProduct(product) {
     return {
       id: product.id,
-      title: product.title,
-      description: product.description,
-      price: `${product.price} ${product.currency}`,
-      link: product.url,
-      availability: product.availability,
-      image_link: product.image_url,
-      condition: product.condition || "new",
-      category: product.category,
-      mpn: product.mpn,
+      title: product.title_ar,
+      description: product.description_ar,
+      price: `${product.variants[0].prices[0].amount/100} ${product.variants[0].prices[0].currency_code}`,
+      link: `https://maroc4products.com/ar/products/${product.handle}`,
+      availability: "in stock",
+      image_link: product.thumbnail,
+      condition: "new",
+      category: product.categories[0],
+      mpn: product.mid_code,
     };
   }
   makeFacebookProduct(product) {
     return {
       id: product.id,
-      title: product.title,
-      description: product.description,
-      price: `${product.price} ${product.currency}`,
-      link: product.url,
-      availability: product.availability,
-      image_link: product.image_url,
-      condition: product.condition || "new",
-      brand: product.brand,
+      title: product.title_ar,
+      description: product.description_ar,
+      price: `${product.variants[0].prices[0].amount/100} ${product.variants[0].prices[0].currency_code}`,
+      link: `https://maroc4products.com/ar/products/${product.handle}`,
+      availability: "in stock",
+      image_link: product.thumbnail,
+      condition: "new",
+      brand: "maroc4products",
     };
   }
 
-  async getProducts(platform) {
+   getProducts= async (platform) => {
     try {
+      
       // fetch products here and name them items
       const items = await this.productService.list({});
-
+      // console.log(items[0])
       if (platform === "meta") {
         const products = items.map((product) => {
           return this.makeFacebookProduct(product);
@@ -73,9 +74,13 @@ class GetProductsService extends TransactionBaseService {
       }
       if (platform === "google") {
         const products = items.map((product) => {
+          console.log(this.makeGoogleProduct(product))
           return this.makeGoogleProduct(product);
         });
+        console.log("***************")
+        console.log(products[0])
         return products;
+
       }
       if (platform === "bing") {
         const products = items.map((product) => {
